@@ -1,0 +1,7 @@
+git init
+git add ./ADF5355数据手册.pdf
+git commit -m"芯片数据手册“
+
+git remote add origin https://gitee.com/duanxuefeng/ADF5355.git
+
+git push -u origin "master"
