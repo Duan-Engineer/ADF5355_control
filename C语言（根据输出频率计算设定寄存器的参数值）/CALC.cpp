@@ -3,16 +3,17 @@
 #define R04    0X36008B84    // DB4=0
 #define R04_EN 0X36008B94 //DB4=1
 
-double RFOUT=425000.123;
-double  F_pfd=10000.0; 
+double RFOUT=425000.123; //输出频率
+double  F_pfd=10000.0;   //锁相环参考频率
 unsigned long INTR,FRAC1R,FRAC2R;
 int RF_Divider,RF_Select=3,X2,RFB;
-double MOD1=16777216.0;
+double MOD1=16777216.0;    //固定参数
 double MOD2=16383.0;//max 16383
 int AMP=4,I_BLEED_N;
+//初始换一组寄存器的值，参考频率为10MHz，输出850MHz
 unsigned long R[13]={0X201540,0X1,0X12,0X3,0X36008B84,0X800025,
 					0X35406076,0X120000E7,0X102D0428,0X5047CC9,
-					0XC0067A,0X61300B,0X1041C}; //�ο�10MHZ�����850MHZ��4��Ƶ 
+					0XC0067A,0X61300B,0X1041C}; //�ο�10MHZ�����850MHZ��4��Ƶ 
 long gcd(long x, long y)
 {
     while(y^=x^=y^=x%=y);
@@ -29,7 +30,7 @@ void calc( double F_voc,double  F_pfd,float F_chsp,int Divider)
 	//printf("N=%.20f\r\n",N);
 	int INT = int(N);
 	//printf("INT=%d\r\n",INT);
-	double f = modf(N,&inter_value);  //inter_value�д����������,f�д��С������
+	double f = modf(N,&inter_value);  //inter_value�д����������,f�д��С������
 	//printf("f=%.16f\r\n",f);	
 	int FRAC1 = int(f*MOD1);
 	//printf("FRAC1=%d\r\n",FRAC1);
@@ -49,6 +50,8 @@ void calc( double F_voc,double  F_pfd,float F_chsp,int Divider)
 	//printf("RF_out=%.6f\r\n",RF_out);
 	printf("%4.6f%10d%10d%10d%10d\r\n",F_voc,INT,FRAC1,FRAC2,MOD2);
 }*/
+
+//分频因子选择函数
 void freq_sel(double  RFOUT)
 {
     if((53125<=RFOUT)&&(RFOUT<106250))   {RF_Divider=64;RF_Select=6;}  // RFOUT = Frequence de sortie en KHz
@@ -60,6 +63,8 @@ void freq_sel(double  RFOUT)
     if((3400000<=RFOUT)&&(RFOUT<6800000)){RF_Divider=1;RF_Select=0;}
     if((6800000<=RFOUT)&&(RFOUT<=13600000)){RF_Divider=1;RF_Select=0;X2=1;RFB=0;} // et mettre la sortie X2
 }
+
+//寄存器参数计算函数
 void calc_new()
 {
 	printf("===========calc RFout=================\r\n");
@@ -87,6 +92,7 @@ void calc_new()
     
 }
 
+//更新寄存器0，1，2，6的值
 void updateRegister(unsigned long INT,unsigned long FRAC1,unsigned long FRAC2,unsigned long MOD2R)
 {
 	
@@ -95,6 +101,8 @@ void updateRegister(unsigned long INT,unsigned long FRAC1,unsigned long FRAC2,un
 	R[2] = 0X2 | (MOD2R<<4)|(FRAC2<<17);
 	R[6] = 0X35006076|(RF_Select<<21);	
 }
+
+//SIP写入寄存器
 void WriteRegister32(const unsigned long value)   //Programme un registre 32bits
 {
   /*digitalWrite(ADF5355_LE, LOW);
@@ -104,6 +112,7 @@ void WriteRegister32(const unsigned long value)   //Programme un registre 32bits
   digitalWrite(ADF5355_LE, LOW);*/
 }
 
+//写入13个寄存器
 void SetADF5355()  // Programme tous les registres de l'ADF5355
 { for (int i = 13; i >= 0; i--)  // programmation ADF5355 en commencant par R12
     WriteRegister32(R[i]);
@@ -113,6 +122,8 @@ void delay(int time)
 {
 	
 }
+
+//更新寄存器的参数
 void updateADF5355()
 	{
 		AMP=3;I_BLEED_N=9; // N=9	
